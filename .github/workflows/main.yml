@@ -1,0 +1,59 @@
+name: Run Tests and Enforce Merge Rules
+
+on:
+  pull_request: # PR açıldığında veya güncellendiğinde çalıştır
+    branches:
+      - main  # Hangi branch'e PR açıldığında çalışacağını belirt
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # Projende kullandığın Node.js sürümü
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Start Docker Services
+      run: docker-compose up -d
+
+    - name: Run Tests
+      run: npm run test-run
+
+    - name: Stop Docker Services
+      if: always()
+      run: docker-compose down
+
+  enforce-rules:
+    needs: run-tests
+    runs-on: ubuntu-latest
+    if: success() 
+
+    steps:
+    - name: Merge Pull Request
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: pullRequest } = await github.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.pull_request.number,
+          });
+
+          if (pullRequest.mergeable) {
+            await github.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              merge_method: 'merge', // "merge", "squash" veya "rebase"
+            });
+          } else {
+            throw new Error('Pull request is not mergeable');
+          }
