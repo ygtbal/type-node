@@ -1,0 +1,54 @@
+name: Run tests and enforce marge rules
+on:
+    push:
+        branches:
+        - main
+    pull_request:
+        branches:
+        - main
+jobs:
+    run-tests:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code # Check out the code in the repository
+              uses: actions/checkout@v3 # Use the latest version of the checkout action
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '22.11.0'
+            - name: Install dependencies
+              run: npm install
+            
+
+            - name: Start Docker Services
+              run: docker-compose up -d 
+            - name: Run tests
+              run: npm run test-run
+    enforce-rules:
+        needs: run-tests
+        runs-on: ubuntu-latest
+        if: success()
+
+        steps:
+            - name: Merge Pull Request
+              uses: actions/github-script@v6
+              with:
+                script: |
+                  const { data: pullRequest } = await github.pulls.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.payload.pull_request.number,
+                  });
+        
+                  if (pullRequest.mergeable) {
+                    await github.pulls.merge({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      pull_number: context.payload.pull_request.number,
+                      merge_method: 'merge', // "merge", "squash" veya "rebase"
+                    });
+                  } else {
+                    throw new Error('Pull request is not mergeable');
+                  }
