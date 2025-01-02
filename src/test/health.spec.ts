@@ -25,6 +25,6 @@ describe('Counts API', () => {
     const res = await request(app).get('/counts');
     expect(res.status).to.equal(200);
     expect(res.body).to.have.property('counts').to.be.an('array');
-    expect(res.body.counts[0]).to.have.property('count', 14);
+    expect(res.body.counts[0]).to.have.property('count', 15);
   });
 });
