@@ -65,4 +65,3 @@ jobs:
           } else {
             throw new Error('Pull request is not mergeable');
           }
-        github-token: ${{ secrets.GITHUB_TOKEN }}
