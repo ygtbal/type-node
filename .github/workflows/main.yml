@@ -4,13 +4,14 @@ on:
   pull_request: # PR açıldığında veya güncellendiğinde çalıştır
     branches:
       - main  # Hangi branch'e PR açıldığında çalışacağını belirt
-permissions:
-  contents: read
-  pull-requests: write
 
 jobs:
   run-tests: # testleri çalıştıran job
     runs-on: ubuntu-latest # Hangi işletim sisteminde çalışacağını belirt
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
 
     steps:
     - name: Checkout Code
