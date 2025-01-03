@@ -65,3 +65,5 @@ jobs:
           } else {
             throw new Error('Pull request is not mergeable');
           }
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHub token'ı
