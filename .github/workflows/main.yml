@@ -1,57 +1,73 @@
-name: Run Tests and Enforce Merge Rules
+name: Run Tests and Enforce Merge Rules # Workflow adı
 
 on:
   pull_request: # PR açıldığında veya güncellendiğinde çalıştır
     branches:
       - main  # Hangi branch'e PR açıldığında çalışacağını belirt
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  run-tests:
-    runs-on: ubuntu-latest
+  run-tests: # testleri çalıştıran job
+    runs-on: ubuntu-latest # Hangi işletim sisteminde çalışacağını belirt
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v3 # Bu kodu main.yml çalıştıracak olan sanal makineye klonlar
 
-    - name: Set up Node.js
+    - name: Set up Docker # Docker'ı kurar
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Install docker-compose # Docker-compose'ı kurar
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker-compose
+
+    - name: Set up Node.js # Node.js'i kurar
       uses: actions/setup-node@v3
       with:
         node-version: '18' # Projende kullandığın Node.js sürümü
 
-    - name: Install Dependencies
+    - name: Install Dependencies # Projendeki bağımlılıkları yükler
       run: npm install
 
-    - name: Start Docker Services
+    - name: Start Docker Services # Docker servislerini başlatır
       run: docker-compose up -d
 
-    - name: Run Tests
+    - name: Run Tests # Testleri çalıştırır
       run: npm run test-run
 
-    - name: Stop Docker Services
+    - name: Stop Docker Services # Docker servislerini durdurur
       if: always()
       run: docker-compose down
 
-  enforce-rules:
-    needs: run-tests
-    runs-on: ubuntu-latest
+  enforce-rules: # merge kurallarını uygulayan job
+    needs: run-tests # run-tests job'unun tamamlanmasını bekler
+    runs-on: ubuntu-latest # Hangi işletim sisteminde çalışacağını belirt
     if: success() 
 
     steps:
     - name: Merge Pull Request
       uses: actions/github-script@v6
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }} # GitHub token'ı
         script: |
-          const { data: pullRequest } = await github.pulls.get({
+          const pullRequest = context.payload.pull_request;
+          if (!pullRequest) {
+            throw new Error('No pull request found');
+          }
+          const { data } = await github.rest.pulls.get({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            pull_number: context.payload.pull_request.number,
+            pull_number: pullRequest.number,
           });
 
-          if (pullRequest.mergeable) {
-            await github.pulls.merge({
+          if (data.mergeable) {
+            await github.rest.pulls.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
+              pull_number: pullRequest.number,
               merge_method: 'merge', // "merge", "squash" veya "rebase"
             });
           } else {
