@@ -48,22 +48,25 @@ jobs:
     - name: Merge Pull Request
       uses: actions/github-script@v6
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }} # GitHub token'ı
         script: |
-          const { data: pullRequest } = await github.pulls.get({
+          const pullRequest = context.payload.pull_request;
+          if (!pullRequest) {
+            throw new Error('No pull request found');
+          }
+          const { data } = await github.rest.pulls.get({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            pull_number: context.payload.pull_request.number,
+            pull_number: pullRequest.number,
           });
 
-          if (pullRequest.mergeable) {
-            await github.pulls.merge({
+          if (data.mergeable) {
+            await github.rest.pulls.merge({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
+              pull_number: pullRequest.number,
               merge_method: 'merge', // "merge", "squash" veya "rebase"
             });
           } else {
             throw new Error('Pull request is not mergeable');
           }
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHub token'ı
