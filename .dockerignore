@@ -1,0 +1,10 @@
+.github
+.imgs
+k8s
+node_modules
+terraform
+.gitignore
+*.sh
+*.yml
+k6.js
+*.md
