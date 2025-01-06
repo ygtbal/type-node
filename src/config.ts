@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-const envFile = `${__dirname}/../.env.${process.env.NODE_ENV || 'test'}`;
+const envFile = `${__dirname}/../.env.${process.env.NODE_ENV || 'development'}`;
 dotenv.config({
   path: envFile
 });
