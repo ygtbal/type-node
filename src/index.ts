@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', (req: Request, res: Response) => {
-    res.status(200).json({message: 'Health Check Ok'});
+    res.status(200).json({message: `Health check ok with port ${port}`});
 });
 
 app.use('/counts', countRoutes);

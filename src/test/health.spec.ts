@@ -6,7 +6,7 @@ describe('Health Check API', () => {
   it('should return status 200 and a message', async () => {
     const res = await request(app).get('/');
     expect(res.status).to.equal(200);
-    expect(res.body).to.have.property('message').to.equal('Health Check Ok');
+    expect(res.body).to.have.property('message').includes('Health check ok');
   });
 });
 
