@@ -11,8 +11,8 @@ resource "aws_db_instance" "postgres" {
    db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name 
 }
 
-resource "aws__db_subnet_group" "rds_subnet_group"  {
-    name = "rds-subnet-group"
+resource "aws_db_subnet_group" "rds_subnet_group"  {
+    name = "rds-subnet-group-v4"
     subnet_ids = module.vpc.private_subnets
 }
 
