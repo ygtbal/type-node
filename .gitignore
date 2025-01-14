@@ -1,3 +1,6 @@
 node_modules
 package-lock.json
-./terraform/.terraform
+# Terraform klasörü ve dosyaları
+/terraform/.terraform/
+*.tfstate
+*.tfstate.backup
